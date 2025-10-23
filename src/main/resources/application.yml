@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: fund-analysis-system
+
+  datasource:
+    url: ${MYSQL_DATASOURCE_URL:jdbc:mysql://localhost:3306/funddb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: false
+    open-in-view: false
+
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+sql:
+  init:
+    mode: never
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.fundanalysis: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+
+fund:
+  data:
+    enabled: true
+    api-base-url: https://api.doctorxiong.club/v1
+    default-codes:
+      - 000001
+      - 110022
+      - 163406
+      - 040012
+      - 161725
