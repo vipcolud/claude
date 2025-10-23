@@ -22,4 +22,6 @@ public interface FundNetValueRepository extends JpaRepository<FundNetValue, Long
            "AND fnv.valueDate >= :startDate ORDER BY fnv.valueDate ASC")
     List<FundNetValue> findByFundSinceDate(
         @Param("fund") Fund fund, @Param("startDate") LocalDate startDate);
+    
+    void deleteByFund(Fund fund);
 }

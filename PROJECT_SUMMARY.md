@@ -1,196 +1,129 @@
-# 项目完成总结
+# 项目完成总结（阶段二）
 
-## 项目概述
-成功构建了一个完整的公募基金分析系统，使用 Java + Spring Boot 技术栈。
+## 概述
+在原有公募基金分析系统的基础上，本阶段完成以下关键增强：
+
+1. **接入真实基金数据 API**（DoctorXiong 开放接口），实现基金基础信息与净值历史的自动同步；
+2. **切换默认数据源至 MySQL**，满足生产环境部署需求；
+3. 新增多项配置、服务与测试，保证功能稳定与可扩展性。
 
 ## 已完成功能 ✅
 
-### 1. 项目架构
-- ✅ 标准 Maven 项目结构
-- ✅ Spring Boot 3.2.0 应用
-- ✅ 分层架构（Entity → Repository → Service → Controller）
-- ✅ RESTful API 设计
+### 架构与数据层
+- [x] 标准的 Spring Boot + Maven 分层架构
+- [x] Spring Data JPA 持久化 + MySQL 运行环境
+- [x] H2（MySQL 模式）作为测试 profile 的轻量数据库
+- [x] 仓储层扩展：`FundNetValueRepository#deleteByFund`
 
-### 2. 实体模型
-- ✅ Fund 实体（基金基本信息）
-- ✅ FundNetValue 实体（净值历史记录）
-- ✅ FundType 枚举（股票型、债券型、混合型）
+### 外部数据接入
+- [x] `FundDataProperties`：集中管理外部数据同步相关配置（开关 / 默认代码 / API 地址）
+- [x] `RestTemplateConfig`：统一配置超时策略，提高外部调用稳定性
+- [x] `FundDataApiClient`：封装 DoctorXiong API 调用与响应解析
+- [x] `ExternalFundData` DTO：映射外部 API 数据结构
+- [x] `FundDataSyncService`：处理基金信息写入、净值数据替换与类型识别
+- [x] `DataInitializer`：启动时根据配置自动同步默认基金数据，可按 profile/配置关闭
 
-### 3. 数据持久化
-- ✅ Spring Data JPA 集成
-- ✅ H2 内存数据库配置
-- ✅ JPA 仓储接口（FundRepository, FundNetValueRepository）
-- ✅ 数据库索引优化
+### 业务与接口层
+- [x] 原有基金列表、详情、指标、对比、筛选、排名等 API 均保持可用
+- [x] 基金指标仍由 `FundMetricsService` 提供，适配真实历史净值数据
 
-### 4. 核心业务服务
+### 配置与文档
+- [x] `application.yml`：默认使用 MySQL（支持环境变量覆写）
+- [x] `application-test.yml`：测试 profile 使用 H2 并禁用外部数据同步
+- [x] README：补充 MySQL 配置、真实数据同步、FAQ 等
+- [x] `.gitignore`、`pom.xml` 等同步更新（新增 MySQL driver、Configuration Processor）
 
-#### FundMetricsService（指标计算服务）
-- ✅ 累计收益率计算
-- ✅ 年化收益率计算
-- ✅ 波动率（标准差）计算
-- ✅ 夏普比率计算
-- ✅ 最大回撤计算
+### 测试体系
+- [x] 原有单元测试保持兼容
+- [x] 新增 `FundDataApiClientTest`（MockRestServiceServer 验证外部接口解析）
+- [x] 新增 `FundDataSyncServiceTest`（Mockito 验证持久化流程）
+- [x] 控制器测试增加 `@ActiveProfiles("test")`，确保使用测试配置
+- [x] 当前共 **17** 个测试用例全部通过
 
-#### FundAnalysisService（分析服务）
-- ✅ 基金列表查询
-- ✅ 基金详情查询
-- ✅ 基金指标获取
-- ✅ 多基金对比分析
-- ✅ 基金筛选（按类型、收益率）
-- ✅ 基金排名（按收益率、夏普比率）
+## 技术栈 & 版本
 
-### 5. REST API 接口
-- ✅ GET /api/funds - 查询所有基金
-- ✅ GET /api/funds/{code} - 查询基金详情
-- ✅ GET /api/funds/{code}/metrics - 获取基金指标
-- ✅ POST /api/funds/compare - 对比多个基金
-- ✅ GET /api/funds/filter - 筛选基金
-- ✅ GET /api/funds/rank/return - 按收益率排名
-- ✅ GET /api/funds/rank/sharpe - 按夏普比率排名
-
-### 6. 数据传输对象（DTO）
-- ✅ FundDTO
-- ✅ FundDetailDTO
-- ✅ FundMetricsDTO
-- ✅ FundComparisonRequest
-- ✅ FundComparisonResponse
-
-### 7. 数据初始化
-- ✅ DataInitializer 配置类
-- ✅ CommandLineRunner 自动执行
-- ✅ 5 个示例基金数据
-- ✅ 约 2600 条净值历史记录（近 2 年工作日数据）
-- ✅ 模拟真实市场数据（正态分布 + 随机波动）
-
-### 8. 测试
-- ✅ FundMetricsServiceTest（4 个测试用例）
-- ✅ FundAnalysisServiceTest（6 个测试用例）
-- ✅ FundControllerTest（5 个测试用例）
-- ✅ 所有测试通过（15/15）
-
-### 9. 配置与文档
-- ✅ application.yml（应用配置）
-- ✅ pom.xml（Maven 依赖管理）
-- ✅ README.md（完整的项目文档和 API 说明）
-- ✅ .gitignore（Git 忽略配置）
-
-## 技术栈
-
-| 技术 | 版本 | 用途 |
+| 技术 | 版本 | 说明 |
 |------|------|------|
 | Java | 21 | 开发语言 |
-| Spring Boot | 3.2.0 | 应用框架 |
-| Spring Data JPA | 3.2.0 | 数据持久化 |
-| H2 Database | 2.2.224 | 内存数据库 |
-| Lombok | 1.18.30 | 代码简化 |
-| JUnit 5 | 5.9.2 | 单元测试 |
-| Mockito | 5.7.0 | 测试 Mock |
+| Spring Boot | 3.2.0 | 核心框架 |
+| Spring Data JPA | 3.2.0 | ORM 框架 |
+| MySQL Connector/J | 8.0 | MySQL 驱动（运行时） |
+| H2 Database | 2.2.224 | 测试 profile 内存数据库 |
+| Lombok | 1.18.30 | 数据类简化 |
+| JUnit 5 / Mockito / MockMvc | — | 测试框架 |
 | Maven | 3.8.7 | 构建工具 |
 
-## 项目统计
+## 关键指标
 
-- **Java 源文件**: 18 个
-- **代码行数**: ~1500 行
-- **测试用例**: 15 个（全部通过）
-- **API 端点**: 7 个
-- **示例基金**: 5 个
-- **净值数据点**: ~2600 条
+- **Java 源文件**：24 个
+- **测试类**：5 个
+- **测试用例**：17 个（全部通过）
+- **REST API 端点**：7 个
+- **默认同步基金**：5 只（可配置）
+- **净值数据来源**：DoctorXiong 实时数据（同步时获取）
 
-## 核心算法实现
+## 核心流程概览
 
-### 1. 累计收益率
-```
-累计收益率 = (最新净值 - 初始净值) / 初始净值 × 100%
-```
+1. **应用启动** → `DataInitializer` 检查配置 → 逐一调用 `FundDataSyncService`
+2. **数据同步** → `FundDataApiClient` 请求外部接口 → 转换为本地实体 → 写入 MySQL
+3. **业务查询** → `FundAnalysisService` 调用仓储 → `FundMetricsService` 计算指标 → 返回 REST API
 
-### 2. 年化收益率
-```
-年化收益率 = (总收益率 + 1) ^ (252 / 天数) - 1
-```
+## 典型配置
 
-### 3. 波动率（年化）
-```
-日波动率 = sqrt(Σ(日收益率 - 平均收益率)² / n)
-年化波动率 = 日波动率 × sqrt(252)
-```
+```yaml
+spring:
+  datasource:
+    url: ${MYSQL_DATASOURCE_URL:jdbc:mysql://localhost:3306/funddb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
 
-### 4. 夏普比率
-```
-夏普比率 = (年化收益率 - 无风险利率) / 年化波动率
-```
-
-### 5. 最大回撤
-```
-回撤 = (历史最高点 - 当前净值) / 历史最高点
-最大回撤 = max(所有回撤)
-```
-
-## 验收标准检查 ✅
-
-- ✅ 完整的 Spring Boot 项目结构
-- ✅ 所有实体和服务实现
-- ✅ REST API 可正常调用
-- ✅ 示例数据自动初始化
-- ✅ 基础单元测试（15 个测试用例）
-- ✅ 清晰的 README（包含启动说明和 API 文档）
-- ✅ 可以直接 `mvn spring-boot:run` 启动
-
-## 启动验证
-
-应用已成功启动并验证：
-- ✅ 应用正常启动（3.28 秒）
-- ✅ 数据初始化完成（5 个基金，2620 条净值记录）
-- ✅ API 端点全部测试通过
-- ✅ 所有单元测试通过
-
-## 示例数据
-
-| 代码 | 名称 | 类型 | 管理人 | 数据点 |
-|------|------|------|--------|--------|
-| 000001 | 华夏成长混合 | 混合型 | 华夏基金管理有限公司 | 524 |
-| 110022 | 易方达消费行业股票 | 股票型 | 易方达基金管理有限公司 | 524 |
-| 163406 | 兴全可转债混合 | 混合型 | 兴证全球基金管理有限公司 | 524 |
-| 040012 | 华安强化债券A | 债券型 | 华安基金管理有限公司 | 524 |
-| 161725 | 招商中证白酒指数 | 股票型 | 招商基金管理有限公司 | 524 |
-
-## API 测试示例
-
-### 查询所有基金
-```bash
-curl http://localhost:8080/api/funds
+fund:
+  data:
+    enabled: true
+    api-base-url: https://api.doctorxiong.club/v1
+    default-codes:
+      - 000001
+      - 110022
+      - 163406
+      - 040012
+      - 161725
 ```
 
-### 获取基金指标
-```bash
-curl http://localhost:8080/api/funds/000001/metrics
-```
+> 测试环境可通过 `mvn spring-boot:run -Dspring-boot.run.profiles=test` 自动切换至 H2，并关闭数据同步。
 
-### 对比多个基金
-```bash
-curl -X POST http://localhost:8080/api/funds/compare \
-  -H "Content-Type: application/json" \
-  -d '{"fundCodes":["000001","110022","040012"]}'
-```
+## 核心测试示例
 
-### 筛选股票型基金
-```bash
-curl "http://localhost:8080/api/funds/filter?type=STOCK"
-```
+- **API 调用示例**
+  ```bash
+  curl http://localhost:8080/api/funds/000001/metrics
+  ```
 
-## 下一步扩展建议
+- **外部数据同步验证**
+  ```bash
+  curl http://localhost:8080/api/funds
+  ```
+  启动后可看到从真实接口同步的基金信息与描述。
 
-1. **数据源集成**: 接入真实基金数据 API
-2. **持久化升级**: 切换到 MySQL/PostgreSQL
-3. **性能优化**: 添加 Redis 缓存
-4. **功能增强**:
-   - 基金持仓分析
-   - 行业配置分析
-   - 风险评估模型
-   - 投资组合优化
-5. **前端界面**: 开发 Vue/React 前端
-6. **安全增强**: 添加认证授权
-7. **监控告警**: 集成 Spring Boot Actuator
+## 后续扩展建议
+
+1. **多数据源融合**：支持更多公开基金数据 API，提升数据可靠性
+2. **定时任务**：通过 `@Scheduled` 定期刷新基金净值
+3. **缓存层引入**：使用 Redis 缓存热点基金指标，提高查询性能
+4. **告警与监控**：集成 Spring Boot Actuator + Prometheus/Grafana
+5. **前端可视化**：构建 Web/移动端界面展示基金分析结果
+6. **权限控制**：接入 OAuth2 / JWT，限制敏感接口访问
 
 ## 总结
 
-项目已完全按照需求完成，所有功能正常运行，代码质量良好，文档完善，测试覆盖全面。可以直接使用 `mvn spring-boot:run` 启动系统进行测试和演示。
+系统现已实现：
+- ✅ 真实基金数据接入
+- ✅ MySQL 持久化支持
+- ✅ 完整的基金分析与指标计算能力
+- ✅ 覆盖完整的单元／接口测试体系
+
+按照 README 操作，可直接在本地或服务器环境中部署并运行。欢迎根据实际业务场景继续拓展与优化。
