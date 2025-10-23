@@ -1,4 +1,9 @@
 import os
+import sys
+from pathlib import Path
+
+# Ensure project root is on sys.path for local execution
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fund_analyzer.analyzer import FundAnalyzer
 from fund_analyzer.data import CSVDataSource
